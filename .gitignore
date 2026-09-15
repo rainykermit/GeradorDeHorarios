@@ -1,0 +1,9 @@
+node_modules/
+dist/
+release/
+release-teste/
+release-build.log
+site/
+tmp-e2e/
+.DS_Store
+*.log

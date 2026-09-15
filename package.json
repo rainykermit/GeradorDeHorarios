@@ -1,0 +1,133 @@
+{
+  "name": "gerador-de-horarios",
+  "version": "1.0.0",
+  "description": "Gerador de Horários para escolas básicas portuguesas",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "e2e": "vite build && node scripts/e2e.mjs",
+    "icone": "node scripts/icone.mjs",
+    "app": "vite build && electron .",
+    "instalador:mac": "vite build && electron-builder --mac",
+    "instalador:win": "vite build && electron-builder --win",
+    "instaladores": "vite build && electron-builder --mac --win",
+    "site": "vite build && node scripts/site.mjs"
+  },
+  "keywords": [],
+  "author": "Gerador de Horários",
+  "license": "UNLICENSED",
+  "type": "module",
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.5.1",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^5.0.1",
+    "immer": "^11.1.18",
+    "preact": "^10.29.8"
+  },
+  "productName": "Gerador de Horarios",
+  "private": true,
+  "build": {
+    "appId": "pt.geradordehorarios.app",
+    "productName": "Gerador de Horarios",
+    "copyright": "Gerador de Horários",
+    "artifactName": "Gerador-de-Horarios-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/index.html",
+      "electron/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "fileAssociations": [
+      {
+        "ext": "horario",
+        "name": "Horario",
+        "description": "Horário (Gerador de Horários)",
+        "role": "Editor",
+        "icon": "build/icon.png"
+      },
+      {
+        "ext": "ficha",
+        "name": "Ficha",
+        "description": "Ficha de disponibilidade (Gerador de Horários)",
+        "role": "Editor",
+        "icon": "build/icon.png"
+      }
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.education",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "CFBundleDisplayName": "Gerador de Horários"
+      }
+    },
+    "dmg": {
+      "title": "Gerador de Horários",
+      "contents": [
+        {
+          "x": 150,
+          "y": 190,
+          "type": "file"
+        },
+        {
+          "x": 390,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gerador de Horários",
+      "uninstallDisplayName": "Gerador de Horários",
+      "installerLanguages": [
+        "pt_PT"
+      ],
+      "language": "2070",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}
