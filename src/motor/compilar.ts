@@ -76,6 +76,8 @@ export interface Problema {
   turmaMaxDia: Int32Array;
   /** Número de turnos distintos por turma (0 = a turma nunca é dividida). */
   turnosTurma: Int32Array;
+  /** Para cada chave (turma, disciplina, turno): a turma a que pertence. */
+  turmaDaChave: Int32Array;
   pesos: Pesos;
   unidades: Unidade[];
   /** "aulaId#indice" → [unidade, membro] */
@@ -217,10 +219,11 @@ export function compilar(projeto: Projeto, opcoes: OpcoesCompilacao): Problema {
       const t = turmaIdx.get(tid);
       if (t === undefined) continue;
       const m = turnosLocais[t];
-      if (!m.has(rot) && m.size < 30) m.set(rot, m.size);
+      // No máximo 31 turnos distintos por turma (bits); os restantes partilham o último, por precaução.
+      if (!m.has(rot)) m.set(rot, Math.min(m.size, 30));
     }
   }
-  const turnosTurma = Int32Array.from(turnosLocais.map((m) => m.size));
+  const turnosTurma = Int32Array.from(turnosLocais.map((m) => Math.min(m.size, 31)));
 
   // Agrupar aulas simultâneas
   const aulasValidas = projeto.aulas.filter((a) => {
@@ -256,6 +259,7 @@ export function compilar(projeto: Projeto, opcoes: OpcoesCompilacao): Problema {
   const tempoIdx = new Map(tempos.map((tp, i) => [tp.id, i]));
 
   const chavesDiscMapa = new Map<string, number>();
+  const turmaDaChave: number[] = [];
   const unidades: Unidade[] = [];
   const mapa = new Map<string, [number, number]>();
 
@@ -294,7 +298,10 @@ export function compilar(projeto: Projeto, opcoes: OpcoesCompilacao): Problema {
           if (rot) mascaras[k] |= 1 << turnosLocais[t].get(rot)!;
           else inteira[k] = true;
           const chave = `${t}|${disc}|${rot}`;
-          if (!chavesDiscMapa.has(chave)) chavesDiscMapa.set(chave, chavesDiscMapa.size);
+          if (!chavesDiscMapa.has(chave)) {
+            chavesDiscMapa.set(chave, chavesDiscMapa.size);
+            turmaDaChave.push(t);
+          }
           const ck = chavesDiscMapa.get(chave)!;
           if (!chavesDisc.includes(ck)) {
             chavesDisc.push(ck);
@@ -411,6 +418,7 @@ export function compilar(projeto: Projeto, opcoes: OpcoesCompilacao): Problema {
     profMaxCons,
     turmaMaxDia,
     turnosTurma,
+    turmaDaChave: Int32Array.from(turmaDaChave),
     pesos,
     unidades,
     mapa,

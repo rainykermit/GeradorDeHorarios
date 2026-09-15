@@ -7,6 +7,9 @@ import { indices } from '../../model/consultas';
 import { paraMinutos } from '../../model/util';
 import { temposOrdenados } from '../../motor/compilar';
 
+/** «à segunda», «à terça»… mas «ao sábado». */
+const noDia = (dia: number) => (dia === 5 ? 'ao sábado' : `à ${NOMES_DIAS[dia].toLowerCase()}`);
+
 export function descreverUnidade(p: Projeto, e: EstadoHorario, u: number): string {
   const idx = indices(p);
   const un = e.problema.unidades[u];
@@ -48,7 +51,7 @@ export function explicarImpossivel(p: Projeto, e: EstadoHorario, u: number, s: n
     const hora = tempos[t + i].inicio;
     if (p.bloqueios[k] === 'indisponivel') razoes.add('Este tempo está bloqueado para toda a escola.');
     for (const pi of un.profs)
-      if (p.professores[pi]?.indisp[k] === 'indisponivel') razoes.add(`${p.professores[pi].nome} está indisponível à ${NOMES_DIAS[dia].toLowerCase()} às ${hora}.`);
+      if (p.professores[pi]?.indisp[k] === 'indisponivel') razoes.add(`${p.professores[pi].nome} está indisponível ${noDia(dia)} às ${hora}.`);
     for (const ti of un.turmas) if (p.turmas[ti]?.indisp[k] === 'indisponivel') razoes.add(`A turma ${p.turmas[ti].nome} não pode ter aulas às ${hora}.`);
     for (const m of un.membros)
       if (p.disciplinas[m.disc]?.indisp[k] === 'indisponivel') razoes.add(`${p.disciplinas[m.disc].nome} não pode ser lecionada às ${hora}.`);

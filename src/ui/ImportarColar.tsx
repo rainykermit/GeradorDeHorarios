@@ -31,9 +31,10 @@ function lerTabela(texto: string): string[][] {
   return linhas.map((l) => l.split(sep).map((c) => c.trim().replace(/^"(.*)"$/, '$1')));
 }
 
-const separarLista = (txt: string) =>
+// Só "/", "," e ";" separam: nomes como «Ana Sousa e Silva» não podem ser partidos.
+export const separarLista = (txt: string) =>
   (txt || '')
-    .split(/\s*[\/,;+&]\s*|\s+e\s+/)
+    .split(/\s*[\/,;]\s*/)
     .map((x) => x.trim())
     .filter(Boolean);
 

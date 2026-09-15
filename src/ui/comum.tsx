@@ -37,6 +37,10 @@ export function Botao(props: {
   );
 }
 
+// Pilha de janelas abertas: a tecla Esc fecha só a que está por cima.
+let pilhaModais: number[] = [];
+let contadorModais = 0;
+
 export function Modal(props: {
   titulo: ComponentChildren;
   aoFechar: () => void;
@@ -44,9 +48,18 @@ export function Modal(props: {
   rodape?: ComponentChildren;
   tamanho?: 'pequena' | 'media' | 'grande';
 }) {
+  const idModal = useRef(0);
+  useEffect(() => {
+    const id = ++contadorModais;
+    idModal.current = id;
+    pilhaModais.push(id);
+    return () => {
+      pilhaModais = pilhaModais.filter((x) => x !== id);
+    };
+  }, []);
   useEffect(() => {
     const tecla = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') props.aoFechar();
+      if (e.key === 'Escape' && pilhaModais[pilhaModais.length - 1] === idModal.current) props.aoFechar();
     };
     window.addEventListener('keydown', tecla);
     return () => window.removeEventListener('keydown', tecla);

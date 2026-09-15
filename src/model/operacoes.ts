@@ -2,7 +2,7 @@
 // retira-o das aulas e da direção de turma).
 
 import type { Draft } from 'immer';
-import type { Aula, Projeto } from './tipos';
+import type { Aula, EstadoTempo, Projeto } from './tipos';
 import { DISCIPLINAS_HABITUAIS, PLANOS_CURRICULARES, novaDisciplina } from './padrao';
 import { novoId, normalizar } from './util';
 
@@ -54,8 +54,8 @@ export function ajustarColocacoesAula(d: P, antes: Aula | undefined, depois: Aul
 }
 
 export function novaAula(parcial: Partial<Aula> = {}): Aula {
-  return {
-    id: novoId('a'),
+  const aula: Aula = {
+    id: '',
     disciplinaId: '',
     professorIds: [],
     turmaIds: [],
@@ -67,6 +67,27 @@ export function novaAula(parcial: Partial<Aula> = {}): Aula {
     notas: '',
     ...parcial,
   };
+  // Uma cópia de outra aula (ou um id vazio) recebe sempre um identificador novo.
+  if (!aula.id) aula.id = novoId('a');
+  return aula;
+}
+
+/** Ao substituir os tempos, as marcações das grelhas passam para os novos tempos (mapa: id antigo → id novo). */
+export function remapearGrelhas(d: P, mapa: Map<string, string>) {
+  const converter = (g: Record<string, EstadoTempo>) => {
+    const novo: Record<string, EstadoTempo> = {};
+    for (const [k, v] of Object.entries(g)) {
+      const [dia, tempo] = k.split('|');
+      const destino = mapa.get(tempo);
+      if (destino) novo[`${dia}|${destino}`] = v;
+    }
+    return novo;
+  };
+  d.bloqueios = converter(d.bloqueios);
+  for (const x of d.professores) x.indisp = converter(x.indisp);
+  for (const x of d.turmas) x.indisp = converter(x.indisp);
+  for (const x of d.disciplinas) x.indisp = converter(x.indisp);
+  for (const x of d.salas) x.indisp = converter(x.indisp);
 }
 
 /** Cria as aulas do plano curricular sugerido para uma turma. */

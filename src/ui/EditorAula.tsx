@@ -50,7 +50,7 @@ export function EditorAula({ inicial, aoFechar }: { inicial: Aula; aoFechar: () 
   const p = useProjeto();
   const idx = indices(p);
   const [a, setA] = useState<Aula>(inicial);
-  const existe = idx.aula.has(inicial.id);
+  const existe = idx.aula.has(a.id);
   const mudar = (parcial: Partial<Aula>) => setA((x) => ({ ...x, ...parcial }));
   const carga = temposPorProfessor(p);
   const disc = idx.disc.get(a.disciplinaId);

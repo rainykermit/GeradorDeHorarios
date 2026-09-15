@@ -89,6 +89,15 @@ try {
   const alvo = page.locator('td.celula:not(:has(.cartao-aula))').nth(3);
   await cartao.dragTo(alvo);
   await page.waitForTimeout(800);
+  // Cada horário gerado é diferente: o tempo escolhido pode ter conflitos, e então a aplicação explica e pergunta o que fazer.
+  const dialogo = page.getByRole('dialog');
+  if (await dialogo.isVisible()) {
+    passo('  (o tempo tinha conflitos: a aplicação explicou-os e perguntou o que fazer)');
+    await foto('conflito');
+    await dialogo.getByRole('button', { name: 'Colocar e retirar conflitos' }).click();
+    await dialogo.waitFor({ state: 'hidden' });
+    await page.waitForTimeout(600);
+  }
   await foto('apos-arrastar');
 
   passo('Anular (Ctrl+Z)');

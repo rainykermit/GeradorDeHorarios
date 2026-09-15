@@ -6,6 +6,7 @@ import { NOMES_DIAS } from '../../model/tipos';
 import { gerarTempos } from '../../model/padrao';
 import { deMinutos, novoId, paraMinutos } from '../../model/util';
 import { tiposDeSala } from '../../model/consultas';
+import { remapearGrelhas } from '../../model/operacoes';
 import { irPara } from '../navegacao';
 
 function ordenar<T extends { inicio: string }>(lista: T[]) {
@@ -43,12 +44,15 @@ function GerarTemposModal({ aoFechar }: { aoFechar: () => void }) {
             onClick={async () => {
               const ok = await confirmar({
                 titulo: 'Substituir os tempos atuais?',
-                texto: 'Os tempos atuais serão substituídos. As indisponibilidades já marcadas e o horário gerado deixam de corresponder e serão limpos.',
+                texto:
+                  'Os tempos atuais serão substituídos. As indisponibilidades já marcadas passam para os novos tempos pela mesma ordem (1.º tempo para o 1.º tempo, etc.). O horário gerado será limpo.',
                 botao: 'Substituir',
                 perigo: true,
               });
               if (!ok) return;
               atualizar((d) => {
+                const antigos = [...d.config.tempos].sort((a, b) => paraMinutos(a.inicio) - paraMinutos(b.inicio));
+                remapearGrelhas(d, new Map(antigos.slice(0, previsao.length).map((t, i) => [t.id, previsao[i].id])));
                 d.config.tempos = previsao;
                 d.horario.colocacoes = [];
                 d.horario.resumo = null;

@@ -1,4 +1,4 @@
-import type { Aula, Disciplina, Professor, Projeto, Sala, Turma } from '../model/tipos';
+import type { Aula, Disciplina, Professor, Projeto, Regras, Sala, Turma } from '../model/tipos';
 import { VERSAO_FORMATO, configPadrao, novoProjeto, regrasPadrao } from '../model/padrao';
 import { novoId } from '../model/util';
 
@@ -30,8 +30,22 @@ export function normalizarProjeto(bruto: unknown): Projeto {
   cfg.tempos = lista(cfg.tempos)
     .filter((t) => t && typeof t.inicio === 'string' && typeof t.fim === 'string')
     .map((t) => ({ id: texto(t.id) || novoId('t'), inicio: t.inicio, fim: t.fim }));
+  const cfgPadrao = configPadrao();
+  cfg.almocoInicio = texto(cfg.almocoInicio, cfgPadrao.almocoInicio);
+  cfg.almocoFim = texto(cfg.almocoFim, cfgPadrao.almocoFim);
+  cfg.inicioTarde = texto(cfg.inicioTarde, cfgPadrao.inicioTarde);
+  cfg.intervaloMaxBloco = Math.max(0, numero(cfg.intervaloMaxBloco, cfgPadrao.intervaloMaxBloco));
+  cfg.atribuirSalasNormais = cfg.atribuirSalasNormais === true;
+  cfg.tipoSalaNormal = texto(cfg.tipoSalaNormal, cfgPadrao.tipoSalaNormal);
 
-  const regras = { ...regrasPadrao(), ...(o.regras ?? {}) };
+  // Regras: valores fora do intervalo (ficheiro danificado ou editado à mão) voltam aos valores de origem.
+  const regras: Regras = regrasPadrao();
+  const regrasFicheiro = (o.regras && typeof o.regras === 'object' ? o.regras : {}) as Record<string, unknown>;
+  for (const k of Object.keys(regras) as (keyof Regras)[]) {
+    const v = regrasFicheiro[k];
+    if (typeof v !== 'number' || !Number.isFinite(v)) continue;
+    (regras as unknown as Record<string, number>)[k] = k.startsWith('max') ? Math.max(0, Math.floor(v)) : Math.min(3, Math.max(0, Math.round(v)));
+  }
 
   const disciplinas: Disciplina[] = lista(o.disciplinas).map((d) => ({
     id: texto(d.id) || novoId('d'),

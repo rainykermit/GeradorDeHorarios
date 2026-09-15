@@ -3,6 +3,7 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const { fileURLToPath } = require('node:url');
 
 const NOME = 'Gerador de Horários';
 app.setName(NOME);
@@ -111,7 +112,8 @@ function criarJanela() {
     },
   });
 
-  janela.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+  const paginaApp = path.join(__dirname, '..', 'dist', 'index.html');
+  janela.loadFile(paginaApp);
   janela.once('ready-to-show', () => {
     janela.maximize();
     janela.show();
@@ -125,11 +127,22 @@ function criarJanela() {
     if (/^https?:|^mailto:/.test(url)) shell.openExternal(url);
     return { action: 'deny' };
   });
+  const mesmoCaminho = (a, b) => (process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b);
   janela.webContents.on('will-navigate', (e, url) => {
-    if (!url.startsWith('file:')) {
-      e.preventDefault();
-      if (/^https?:|^mailto:/.test(url)) shell.openExternal(url);
+    let destino = null;
+    try {
+      destino = new URL(url);
+    } catch {
+      /* endereço inválido */
     }
+    // Só é permitido mudar de secção dentro da própria aplicação (#/...).
+    if (destino && destino.protocol === 'file:' && mesmoCaminho(path.normalize(fileURLToPath(destino)), path.normalize(paginaApp))) return;
+    e.preventDefault();
+    if (destino && destino.protocol === 'file:') {
+      // Ficheiro largado na janela: abre-o se for um horário ou uma ficha.
+      const caminho = fileURLToPath(destino);
+      if (/\.(horario|ficha)$/i.test(caminho)) enviarFicheiro(caminho);
+    } else if (/^https?:|^mailto:/.test(url)) shell.openExternal(url);
   });
 
   // Antes de fechar, garantir que o trabalho fica guardado.

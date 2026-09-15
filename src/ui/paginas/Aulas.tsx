@@ -161,7 +161,7 @@ export function PaginaAulas() {
                             pequeno
                             icone="copiar"
                             title="Duplicar"
-                            onClick={() => setEditar(novaAula({ ...a, id: undefined as never, notas: a.notas }))}
+                            onClick={() => setEditar(novaAula({ ...a, id: '' }))}
                           />
                           <Botao
                             variante="fantasma"

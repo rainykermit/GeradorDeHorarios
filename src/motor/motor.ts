@@ -10,6 +10,9 @@
 
 import { INF, type Problema } from './compilar';
 
+/** Penalização por aula não colocada: nenhuma otimização troca aulas colocadas por menos furos. */
+const PENALIZACAO_NAO_COLOCADA = 1e7;
+
 export function criarAleatorio(semente: number) {
   let a = semente >>> 0 || 1;
   return () => {
@@ -145,6 +148,10 @@ export class Motor {
   private selo = 0;
   private readonly conf: number[] = [];
   private readonly occ: Uint8Array;
+  private readonly bufMascaras: Int32Array;
+  private readonly bufInteira: Uint8Array;
+  private readonly almPrimeiro: number;
+  private readonly almUltimo: number;
   private rnd: () => number;
 
   // Fase 1
@@ -218,6 +225,17 @@ export class Motor {
 
     this.marca = new Int32Array(U);
     this.occ = new Uint8Array(this.T);
+    this.bufMascaras = new Int32Array(this.T);
+    this.bufInteira = new Uint8Array(this.T);
+    let primAlm = -1;
+    let ultAlm = -1;
+    for (let t = 0; t < this.T; t++)
+      if (p.almoco[t]) {
+        if (primAlm < 0) primAlm = t;
+        ultAlm = t;
+      }
+    this.almPrimeiro = primAlm;
+    this.almUltimo = ultAlm;
     this.ejecoes = new Int32Array(U);
     this.tabu = new Int32Array(U * this.S);
     this.impossivel = new Uint8Array(U);
@@ -329,16 +347,18 @@ export class Motor {
     return true;
   }
 
-  private escolherSalas(u: number, s: number, out: Int32Array, preferidas: Int32Array | null): boolean {
+  private escolherSalas(u: number, s: number, out: Int32Array, preferidas: Int32Array | null, qualquerPreferida = false): boolean {
     const un = this.p.unidades[u];
     for (let k = 0; k < un.membros.length; k++) {
       const cands = un.membros[k].salas;
-      if (cands.length === 0) {
-        out[k] = -1;
-        continue;
+      const pref = preferidas ? preferidas[k] : -1;
+      if (cands.length === 0 || (qualquerPreferida && pref >= 0 && !cands.includes(pref))) {
+        // Sala escolhida à mão fora das salas habituais da aula: mantém-se se estiver livre.
+        const manter = qualquerPreferida && pref >= 0 && pref < this.p.nSala && this.salaLivre(pref, s, un.dur, out, k);
+        out[k] = manter ? pref : -1;
+        if (manter || cands.length === 0) continue;
       }
       let escolhida = -1;
-      const pref = preferidas ? preferidas[k] : -1;
       if (pref >= 0 && cands.includes(pref) && this.salaLivre(pref, s, un.dur, out, k)) escolhida = pref;
       else {
         const n = cands.length;
@@ -358,7 +378,7 @@ export class Motor {
   }
 
   /** Verifica se a unidade `u` (não colocada) pode ir para `s` sem conflitos. Preenche as salas em `out`. */
-  viavel(u: number, s: number, out: Int32Array, preferidas: Int32Array | null = null): boolean {
+  viavel(u: number, s: number, out: Int32Array, preferidas: Int32Array | null = null, qualquerPreferida = false): boolean {
     const un = this.p.unidades[u];
     if (!un.permitido[s]) return false;
     const { S, T, D } = this;
@@ -387,7 +407,7 @@ export class Motor {
       for (let i = 0; i < dur; i++) if (this.turmaOcc[t * S + s + i].length === 0) novos++;
       if (this.turmaDiaOcup[t * D + d] + novos > max) return false;
     }
-    return this.escolherSalas(u, s, out, preferidas);
+    return this.escolherSalas(u, s, out, preferidas, qualquerPreferida);
   }
 
   /** Unidades que impedem a colocação de `u` em `s` (para explicar ao utilizador). */
@@ -541,7 +561,6 @@ export class Motor {
   // ───────────────────────── Custos (regras preferenciais) ─────────────────────────
 
   private almocoEFuros(occ: Uint8Array, primeiro: number, ultimo: number): [number, number] {
-    const T = this.T;
     const alm = this.p.almoco;
     let livres = 0;
     let livresAlm = 0;
@@ -552,18 +571,16 @@ export class Motor {
       }
     }
     const furos = livres - (livresAlm > 0 ? 1 : 0);
-    let temJanela = false;
+    const primAlm = this.almPrimeiro;
+    if (primAlm < 0) return [furos, 0];
+    const ultAlm = this.almUltimo;
     let janelaCheia = true;
-    let primAlm = -1;
-    let ultAlm = -1;
-    for (let t = 0; t < T; t++) {
-      if (!alm[t]) continue;
-      temJanela = true;
-      if (primAlm < 0) primAlm = t;
-      ultAlm = t;
-      if (!occ[t]) janelaCheia = false;
-    }
-    const semAlmoco = temJanela && janelaCheia && (primeiro < primAlm || ultimo > ultAlm) ? 1 : 0;
+    for (let t = primAlm; t <= ultAlm; t++)
+      if (alm[t] && !occ[t]) {
+        janelaCheia = false;
+        break;
+      }
+    const semAlmoco = janelaCheia && (primeiro < primAlm || ultimo > ultAlm) ? 1 : 0;
     return [furos, semAlmoco];
   }
 
@@ -627,8 +644,8 @@ export class Motor {
     if (nTurnos > 0 && W.turnoIsolado > 0) {
       // Furos de cada subgrupo (turno) que não existem para a turma como um todo.
       const unidades = this.p.unidades;
-      const mascaras = new Int32Array(T);
-      const inteira = new Uint8Array(T);
+      const mascaras = this.bufMascaras;
+      const inteira = this.bufInteira;
       for (let t = primeiro; t <= ultimo; t++) {
         let m = 0;
         let int = 0;
@@ -684,7 +701,9 @@ export class Motor {
         this.custoTurma[t * this.D + d] = c;
         total += c;
       }
-    return total + this.penMesmoDia + this.penEstatico;
+    let naoColocadas = 0;
+    for (let u = 0; u < this.U; u++) if (this.pos[u] < 0) naoColocadas++;
+    return total + this.penMesmoDia + this.penEstatico + naoColocadas * PENALIZACAO_NAO_COLOCADA;
   }
 
   // ───────────────────────── Fase 1: colocação ─────────────────────────
@@ -1240,9 +1259,9 @@ export class Motor {
           }
         }
         if (this.iterSA % 65536 < 2048) {
+          if (this.moveis.length + this.contarFixas() < this.U) this.tentarColocarPendentes();
           this.custoAtual = this.calcularTodosCustos();
-          if (this.pendentes() === 0 && this.moveis.length + this.contarFixas() < this.contarColocaveis())
-            this.tentarColocarPendentes();
+          this.guardarMelhor(false);
         }
       }
     }
@@ -1255,11 +1274,6 @@ export class Motor {
     return n;
   }
 
-  private contarColocaveis() {
-    let n = 0;
-    for (let u = 0; u < this.U; u++) if (!this.impossivel[u]) n++;
-    return n;
-  }
 
   /** Pede ao motor que termine já, guardando o melhor resultado encontrado. */
   parar() {
@@ -1294,7 +1308,7 @@ export class Motor {
     for (const { u, s, salas } of posicoes) {
       const un = this.p.unidades[u];
       const pref = Int32Array.from(salas);
-      if (s >= 0 && un.permitido[s] && this.viavel(u, s, this.tmpA, pref)) {
+      if (s >= 0 && un.permitido[s] && this.viavel(u, s, this.tmpA, pref, true)) {
         // mantém a sala indicada mesmo que não seja a candidata habitual, se estiver livre
         this.colocar(u, s, this.tmpA);
       } else invalidas.push(u);
@@ -1338,10 +1352,7 @@ export class Motor {
         if (vistas.has(key)) continue;
         vistas.add(key);
         const excesso = this.discDia[key] - un.maxDisc[k];
-        if (excesso > 0) {
-          // descobrir a turma desta chave
-          for (let kt = 0; kt < un.turmas.length; kt++) turmas[un.turmas[kt]].mesmoDia += excesso;
-        }
+        if (excesso > 0) turmas[this.p.turmaDaChave[un.chavesDisc[k]]].mesmoDia += excesso;
       }
     }
     custo += this.penMesmoDia + this.penEstatico;

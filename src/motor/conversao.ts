@@ -21,7 +21,8 @@ export function colocacoesDoMotor(problema: Problema, motor: Motor): Colocacao[]
         dia: problema.dias[d],
         tempoId: problema.tempoIds[t],
         salaId: salas[k] >= 0 ? problema.salaIds[salas[k]] : null,
-        fixa: un.fixa,
+        // O motor pode ter libertado uma fixação impossível de cumprir.
+        fixa: motor.estaFixa(u),
       });
     });
   }

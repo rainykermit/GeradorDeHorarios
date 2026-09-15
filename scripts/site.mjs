@@ -65,12 +65,31 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== CACHE).map((x) => caches.delete(x)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== self.location.origin) return;
+  if (e.request.mode === 'navigate') {
+    // A página: primeiro a rede (versão mais recente); sem internet, a cópia guardada.
+    e.respondWith(
+      fetch(e.request)
+        .then((r) => {
+          if (r.ok) {
+            const copia = r.clone();
+            caches.open(CACHE).then((c) => c.put('./index.html', copia));
+          }
+          return r;
+        })
+        .catch(() => caches.match('./index.html').then((g) => g || caches.match('./'))),
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then((guardado) => {
       const rede = fetch(e.request)
         .then((r) => {
-          if (r.ok) caches.open(CACHE).then((c) => c.put(e.request, r.clone()));
+          if (r.ok) {
+            // A cópia tem de ser feita já: depois de a resposta ser lida já não é possível.
+            const copia = r.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copia));
+          }
           return r;
         })
         .catch(() => guardado);

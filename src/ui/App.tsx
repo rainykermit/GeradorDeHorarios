@@ -1,6 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { Icone } from './icones';
-import { Botao, Camadas } from './comum';
+import { Botao, Camadas, notificar } from './comum';
 import { irPara, useRota } from './navegacao';
 import { anular, gravarAgora, podeAnular, podeRefazer, refazer, useGravacao, useProjeto } from '../estado/store';
 import { abrirConteudoExterno, abrirExemplo, abrirProjeto, guardarProjeto, novoHorario } from './acoesFicheiro';
@@ -150,10 +150,28 @@ export function App() {
     const aoSair = () => {
       gravarAgora();
     };
+    // Largar um ficheiro na janela abre-o, em vez de o navegador substituir a aplicação pelo seu conteúdo.
+    const arrastarSobre = (ev: DragEvent) => {
+      if (ev.dataTransfer?.types.includes('Files')) ev.preventDefault();
+    };
+    const largarFicheiro = async (ev: DragEvent) => {
+      const f = ev.dataTransfer?.files?.[0];
+      if (!f) return;
+      ev.preventDefault();
+      if (!/\.(horario|ficha|json)$/i.test(f.name)) {
+        notificar('Só é possível abrir ficheiros de horário (.horario) ou fichas de disponibilidade (.ficha).', 'aviso', 6000);
+        return;
+      }
+      abrirConteudoExterno(f.name, await f.text());
+    };
     window.addEventListener('pagehide', aoSair);
+    window.addEventListener('dragover', arrastarSobre);
+    window.addEventListener('drop', largarFicheiro);
     return () => {
       window.removeEventListener('keydown', tecla);
       window.removeEventListener('pagehide', aoSair);
+      window.removeEventListener('dragover', arrastarSobre);
+      window.removeEventListener('drop', largarFicheiro);
     };
   }, []);
 

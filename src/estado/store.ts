@@ -54,11 +54,12 @@ export interface OpcoesAtualizacao {
 }
 
 export function atualizar(receita: (rascunho: Draft<Projeto>) => void, opcoes: OpcoesAtualizacao = {}) {
-  const novo = produce(projeto, (d) => {
-    receita(d);
+  // Alterações que não mudam nada não criam passos de "anular" nem gravações.
+  const alterado = produce(projeto, receita);
+  if (alterado === projeto) return;
+  const novo = produce(alterado, (d) => {
     d.atualizadoEm = new Date().toISOString();
   });
-  if (novo === projeto) return;
   const agoraMs = Date.now();
   const mesmoGrupo =
     opcoes.agrupar && ultimoGrupo && ultimoGrupo.chave === opcoes.agrupar && agoraMs - ultimoGrupo.quando < 1500;

@@ -4,7 +4,7 @@ import type { Projeto } from '../model/tipos';
 import { NOMES_DIAS } from '../model/tipos';
 import { type TipoEntidade, chaveCelula, entidadesDe, grelhaDe, nomeEntidade, rotulosItem } from '../model/grelhaHorario';
 import { indices, nomesProfessores, nomesTurmas } from '../model/consultas';
-import { compararTexto, corClara, somaTempos, textoDistribuicao } from '../model/util';
+import { compararTexto, corClara, normalizar, somaTempos, textoDistribuicao } from '../model/util';
 
 // ───────── ZIP (método "store") ─────────
 
@@ -262,14 +262,15 @@ function folhaEntidade(livro: Livro, p: Projeto, tipo: TipoEntidade, id: string,
   const unir: string[] = [];
   const nCols = g.dias.length + 1;
   linhas.push([{ v: `${TITULO[tipo]} ${nome}`, e: { tamanho: 14 } }]);
-  unir.push(`A1:${colunaLetra(nCols - 1)}1`);
+  // Unir uma única célula faz o Excel pedir para «reparar» o ficheiro.
+  if (nCols > 1) unir.push(`A1:${colunaLetra(nCols - 1)}1`);
   let sub = `${p.escola} · Ano letivo ${p.anoLetivo}`;
   if (tipo === 'turma') {
     const t = idx.turma.get(id);
     if (t?.dtId) sub += ` · Diretor(a) de turma: ${idx.prof.get(t.dtId)?.nome ?? ''}`;
   }
   linhas.push([{ v: sub }]);
-  unir.push(`A2:${colunaLetra(nCols - 1)}2`);
+  if (nCols > 1) unir.push(`A2:${colunaLetra(nCols - 1)}2`);
   const cab: Estilo = { negrito: true, borda: true, centro: true, fundo: '#E4E8EF' };
   linhas.push([{ v: 'Tempo', e: cab }, ...g.dias.map((d) => ({ v: NOMES_DIAS[d], e: cab }))]);
   const alturas = new Map<number, number>();
@@ -330,7 +331,7 @@ function folhaGeral(livro: Livro, p: Projeto, modo: TipoEntidade) {
       l2.push({ v: `${ti + 1}.º ${t.inicio}`, e: { ...cab, tamanho: 9 } });
     });
     const c0 = 1 + di * tempos.length;
-    unir.push(`${colunaLetra(c0)}2:${colunaLetra(c0 + tempos.length - 1)}2`);
+    if (tempos.length > 1) unir.push(`${colunaLetra(c0)}2:${colunaLetra(c0 + tempos.length - 1)}2`);
   });
   linhas.push(l1, l2);
   for (const e of entidades) {
@@ -379,7 +380,8 @@ export function exportarExcel(p: Projeto, o: OpcoesExcel): Uint8Array {
   if (o.geralProfs) folhaGeral(livro, p, 'prof');
   if (o.turmas) for (const e of entidadesDe(p, 'turma')) folhaEntidade(livro, p, 'turma', e.id, '');
   if (o.profs) for (const e of entidadesDe(p, 'prof')) folhaEntidade(livro, p, 'prof', e.id, '');
-  if (o.salas) for (const e of entidadesDe(p, 'sala')) folhaEntidade(livro, p, 'sala', e.id, 'Sala ');
+  if (o.salas)
+    for (const e of entidadesDe(p, 'sala')) folhaEntidade(livro, p, 'sala', e.id, normalizar(e.nome).startsWith('sala') ? '' : 'Sala ');
   if (o.distribuicao) folhaDistribuicao(livro, p);
   if (livro.folhas.length === 0) folhaDistribuicao(livro, p);
   return livro.gerar();

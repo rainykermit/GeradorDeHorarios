@@ -76,9 +76,9 @@ npm run site             # pasta site/ pronta a publicar em qualquer alojamento 
 - **Nome técnico sem acentos**: o `productName` do pacote é «Gerador de Horarios». Com «á» no nome, o macOS guarda os nomes dos
   ficheiros internos numa forma Unicode diferente da do `Info.plist` e a aplicação falha ao arrancar (SIGTRAP). O nome visível
   (título da janela, menus, atalho do Windows, `CFBundleDisplayName`) mantém o acento.
-- **Assinatura de código**: sem certificados, o Windows mostra o aviso SmartScreen e o macOS pede «Abrir mesmo assim» (ver guia).
-  Para eliminar os avisos: certificado de assinatura de código Windows (variáveis `CSC_LINK`/`CSC_KEY_PASSWORD`) e conta Apple Developer
-  (`CSC_LINK`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` para notarização).
+- **Sem certificados pagos (propositadamente)**: o projeto é gratuito. Na primeira abertura, o Windows mostra o aviso SmartScreen e o
+  macOS pede «Abrir mesmo assim»; o [guia](docs/GUIA-DE-INSTALACAO.md) explica os passos. A aplicação de macOS leva uma assinatura
+  ad-hoc (gratuita), necessária para abrir em Macs com Apple Silicon.
 
 ## Privacidade
 

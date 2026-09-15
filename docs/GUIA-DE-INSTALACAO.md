@@ -8,7 +8,7 @@ O Gerador de Horários pode ser usado de duas formas. Escolha a que preferir: o 
 
 ### Windows
 
-1. Descarregue o ficheiro **Gerador-de-Horarios-win-x64.exe**.
+1. Descarregue o instalador: **[Gerador-de-Horarios-win-x64.exe](https://github.com/rainykermit/GeradorDeHorarios/releases/latest/download/Gerador-de-Horarios-win-x64.exe)**.
 2. Faça duplo clique no ficheiro descarregado.
 3. Se aparecer uma janela azul a dizer «O Windows protegeu o seu PC», clique em **Mais informações** e depois em **Executar mesmo assim**.
    (Isto acontece com programas novos que ainda não são conhecidos pelo Windows. É seguro.)
@@ -17,7 +17,7 @@ O Gerador de Horários pode ser usado de duas formas. Escolha a que preferir: o 
 
 ### Mac
 
-1. Descarregue o ficheiro **Gerador-de-Horarios-mac-universal.dmg**.
+1. Descarregue o instalador: **[Gerador-de-Horarios-mac-universal.dmg](https://github.com/rainykermit/GeradorDeHorarios/releases/latest/download/Gerador-de-Horarios-mac-universal.dmg)**.
 2. Faça duplo clique no ficheiro descarregado. Abre-se uma janela.
 3. Arraste o ícone **Gerador de Horarios** para a pasta **Aplicações**.
 4. Abra a pasta **Aplicações** e faça duplo clique em **Gerador de Horarios**.
@@ -32,7 +32,9 @@ O Gerador de Horários pode ser usado de duas formas. Escolha a que preferir: o 
 
 ## Opção 2 — Usar no navegador
 
-Abra o endereço do Gerador de Horários indicado pela sua escola no Google Chrome, Microsoft Edge, Firefox ou Safari. Não é preciso instalar nada.
+Abra **[rainykermit.github.io/GeradorDeHorarios](https://rainykermit.github.io/GeradorDeHorarios/)** no Google Chrome, Microsoft Edge, Firefox ou Safari. Não é preciso instalar nada.
+
+(Na página Início do site também encontra os botões para descarregar a aplicação para Windows ou Mac.)
 
 O trabalho fica guardado nesse navegador, nesse computador. Use sempre o mesmo computador e o mesmo navegador, e guarde cópias em ficheiro (botão **Guardar**).
 
