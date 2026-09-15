@@ -83,3 +83,7 @@ npm run site             # pasta site/ pronta a publicar em qualquer alojamento 
 ## Privacidade
 
 Nenhum dado sai do computador do utilizador. Não há contas, servidores, telemetria ou ligações externas.
+
+## Licença
+
+Distribuído sob a licença GNU GPL v3 — ver [LICENSE](LICENSE).
