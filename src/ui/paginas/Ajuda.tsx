@@ -151,6 +151,19 @@ export function PaginaAjuda() {
           </Botao>
         </details>
 
+        <h2>Sobre</h2>
+        <p>
+          O Gerador de Horários foi feito por{' '}
+          <a href="https://github.com/rainykermit" target="_blank" rel="noopener noreferrer">
+            rainykermit
+          </a>
+          . É gratuito e de código aberto (licença GNU GPL v3). O código e as novas versões estão em{' '}
+          <a href="https://github.com/rainykermit/GeradorDeHorarios" target="_blank" rel="noopener noreferrer">
+            github.com/rainykermit/GeradorDeHorarios
+          </a>
+          .
+        </p>
+
         <h2>Atalhos de teclado</h2>
         <ul>
           <li>

@@ -16,7 +16,7 @@
     "site": "vite build && node scripts/site.mjs"
   },
   "keywords": [],
-  "author": "Gerador de Horários",
+  "author": "rainykermit",
   "license": "GPL-3.0-only",
   "type": "module",
   "devDependencies": {
@@ -38,7 +38,7 @@
   "build": {
     "appId": "pt.geradordehorarios.app",
     "productName": "Gerador de Horarios",
-    "copyright": "Gerador de Horários",
+    "copyright": "© rainykermit",
     "artifactName": "Gerador-de-Horarios-${os}-${arch}.${ext}",
     "directories": {
       "output": "release",

@@ -86,7 +86,14 @@ function Navegacao({ ativa, projeto }: { ativa: string; projeto: Projeto }) {
           <span class="rotulo">Ajuda</span>
         </a>
       </nav>
-      <div class="rodape-lateral">Versão {__VERSAO__}</div>
+      <div class="rodape-lateral">
+        Versão {__VERSAO__}
+        <br />
+        Feito por{' '}
+        <a href="https://github.com/rainykermit" target="_blank" rel="noopener noreferrer">
+          rainykermit
+        </a>
+      </div>
     </aside>
   );
 }

@@ -185,6 +185,14 @@ h4 {
   color: #7f8fa8;
 }
 
+.lateral .rodape-lateral a {
+  color: #aab8cc;
+}
+
+.lateral .rodape-lateral a:hover {
+  color: #fff;
+}
+
 .principal {
   display: flex;
   flex-direction: column;

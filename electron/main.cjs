@@ -212,6 +212,13 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(() => {
+    app.setAboutPanelOptions({
+      applicationName: NOME,
+      applicationVersion: app.getVersion(),
+      credits: 'Feito por rainykermit',
+      copyright: '© rainykermit · Licença GNU GPL v3',
+      website: 'https://github.com/rainykermit/GeradorDeHorarios',
+    });
     criarMenu();
     criarJanela();
     const inicial = ficheiroDosArgumentos(process.argv);

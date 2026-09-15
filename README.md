@@ -3,6 +3,8 @@
 Aplicação para criar os horários de turmas, docentes e salas das escolas básicas portuguesas.
 Totalmente em português de Portugal, pensada para quem não tem conhecimentos técnicos.
 
+Feito por [rainykermit](https://github.com/rainykermit).
+
 Os utilizadores finais recebem **um instalador** (Windows `.exe`, macOS `.dmg`) ou **um endereço web**.
 O guia para utilizadores está em [docs/GUIA-DE-INSTALACAO.md](docs/GUIA-DE-INSTALACAO.md).
 
