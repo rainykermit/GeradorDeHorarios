@@ -1,6 +1,6 @@
 {
   "name": "gerador-de-horarios",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Gerador de Horários para escolas básicas portuguesas",
   "main": "electron/main.cjs",
   "scripts": {
@@ -56,14 +56,14 @@
         "name": "Horario",
         "description": "Horário (Gerador de Horários)",
         "role": "Editor",
-        "icon": "build/icon.png"
+        "icon": "documento"
       },
       {
         "ext": "ficha",
         "name": "Ficha",
         "description": "Ficha de disponibilidade (Gerador de Horários)",
         "role": "Editor",
-        "icon": "build/icon.png"
+        "icon": "documento"
       }
     ],
     "mac": {

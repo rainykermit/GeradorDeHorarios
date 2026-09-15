@@ -24,6 +24,8 @@ export function useRota(): Rota {
   useEffect(() => {
     const f = () => setRota(lerRota());
     window.addEventListener('hashchange', f);
+    // Uma mudança de endereço entre o primeiro desenho e este momento não seria vista.
+    f();
     return () => window.removeEventListener('hashchange', f);
   }, []);
   return rota;

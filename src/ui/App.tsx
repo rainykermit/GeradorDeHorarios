@@ -120,6 +120,9 @@ export function App() {
     const tecla = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
+      // Na aplicação de computador estes atalhos pertencem ao menu da janela;
+      // tratá-los também aqui podia executá-los duas vezes (ex.: duas janelas de «Guardar» no Windows).
+      if (window.gdhDesktop) return;
       const alvo = e.target as HTMLElement;
       const aEscrever = alvo && (alvo.tagName === 'INPUT' || alvo.tagName === 'TEXTAREA' || alvo.isContentEditable);
       const k = e.key.toLowerCase();

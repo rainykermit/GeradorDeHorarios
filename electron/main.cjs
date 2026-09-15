@@ -5,8 +5,13 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { fileURLToPath } = require('node:url');
 
+// Registos para diagnóstico: só aparecem com a variável de ambiente GDH_DEPURAR.
+const depurar = process.env.GDH_DEPURAR ? (...a) => console.log('[gdh]', ...a) : () => {};
+
 const NOME = 'Gerador de Horários';
 app.setName(NOME);
+// Windows: o mesmo identificador do atalho criado pelo instalador (barra de tarefas e ícone fixado).
+if (process.platform === 'win32') app.setAppUserModelId('pt.geradordehorarios.app');
 
 let janela = null;
 let podeFechar = false;
@@ -16,19 +21,36 @@ function ficheiroDosArgumentos(argv) {
   return argv.slice(1).find((a) => /\.(horario|ficha)$/i.test(a) && fs.existsSync(a));
 }
 
+// A página só está pronta para receber ficheiros depois de carregar o trabalho guardado.
+// Até lá, os ficheiros ficam em espera e é a própria página que os pede (ver 'ficheiros-pendentes').
+let paginaPronta = false;
+
+function lerFicheiro(caminho) {
+  try {
+    return { nome: path.basename(caminho), conteudo: fs.readFileSync(caminho, 'utf8') };
+  } catch (e) {
+    dialog.showErrorBox(NOME, `Não foi possível abrir o ficheiro:\n${caminho}\n\n${e.message}`);
+    return null;
+  }
+}
+
 function enviarFicheiro(caminho) {
+  depurar('enviarFicheiro', caminho, 'janela:', !!janela, 'paginaPronta:', paginaPronta);
   if (!caminho) return;
-  if (!janela || janela.webContents.isLoading()) {
+  if (!janela || !paginaPronta) {
     ficheirosPorAbrir.push(caminho);
     return;
   }
-  try {
-    const conteudo = fs.readFileSync(caminho, 'utf8');
-    janela.webContents.send('abrir-conteudo', { nome: path.basename(caminho), conteudo });
-  } catch (e) {
-    dialog.showErrorBox(NOME, `Não foi possível abrir o ficheiro:\n${caminho}\n\n${e.message}`);
-  }
+  const ficheiro = lerFicheiro(caminho);
+  if (ficheiro) janela.webContents.send('abrir-conteudo', ficheiro);
+  depurar('ficheiro entregue à página:', ficheiro ? ficheiro.nome : '(não foi possível ler)');
 }
+
+ipcMain.handle('ficheiros-pendentes', () => {
+  depurar('ficheiros-pendentes', ficheirosPorAbrir.length);
+  paginaPronta = true;
+  return ficheirosPorAbrir.splice(0).map(lerFicheiro).filter(Boolean);
+});
 
 function enviarMenu(acao) {
   janela?.webContents.send('menu', acao);
@@ -86,6 +108,19 @@ function criarMenu() {
         { role: 'togglefullscreen', label: 'Ecrã inteiro' },
       ],
     },
+    ...(mac
+      ? [
+          {
+            label: 'Janela',
+            submenu: [
+              { role: 'minimize', label: 'Minimizar' },
+              { role: 'zoom', label: 'Ajustar' },
+              { type: 'separator' },
+              { role: 'close', label: 'Fechar janela' },
+            ],
+          },
+        ]
+      : []),
     {
       label: 'Ajuda',
       submenu: [{ label: 'Ajuda do Gerador de Horários', accelerator: 'F1', click: () => enviarMenu('ajuda') }],
@@ -118,8 +153,11 @@ function criarJanela() {
     janela.maximize();
     janela.show();
   });
-  janela.webContents.on('did-finish-load', () => {
-    while (ficheirosPorAbrir.length) enviarFicheiro(ficheirosPorAbrir.shift());
+  // Só um documento novo (ex.: recarregar) torna a página "não pronta". Não usar 'did-start-loading':
+  // também dispara quando um ficheiro é largado na janela e a navegação é cancelada, e o ficheiro ficava em espera para sempre.
+  janela.webContents.on('did-navigate', (_e, url) => {
+    depurar('did-navigate', url);
+    paginaPronta = false;
   });
 
   // Ligações externas abrem no navegador; a aplicação nunca sai da sua página.
@@ -129,6 +167,7 @@ function criarJanela() {
   });
   const mesmoCaminho = (a, b) => (process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b);
   janela.webContents.on('will-navigate', (e, url) => {
+    depurar('will-navigate', url);
     let destino = null;
     try {
       destino = new URL(url);

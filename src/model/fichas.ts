@@ -3,7 +3,7 @@
 import type { FichaDocente, Grelha, Projeto } from './tipos';
 import { chaveGrelha } from './tipos';
 import { configPadrao } from './padrao';
-import { normalizar, paraMinutos } from './util';
+import { normalizar, paraMinutos, semBOM } from './util';
 
 export function fichaModelo(p: Projeto | null): FichaDocente {
   const cfg = p && p.config.tempos.length ? p.config : configPadrao();
@@ -25,7 +25,7 @@ export function fichaModelo(p: Projeto | null): FichaDocente {
 export function lerFicha(texto: string): FichaDocente {
   let o: any;
   try {
-    o = JSON.parse(texto);
+    o = JSON.parse(semBOM(texto));
   } catch {
     throw new Error('O ficheiro não é uma ficha de disponibilidade válida.');
   }

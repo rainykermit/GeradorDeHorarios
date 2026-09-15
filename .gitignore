@@ -1,7 +1,8 @@
 node_modules/
 dist/
 release/
-release-teste/
+release-teste*/
+release-verificacao*
 release-build.log
 site/
 tmp-e2e/

@@ -2,6 +2,7 @@
 
 import { criarExemplo } from '../model/exemplo';
 import { novoProjeto } from '../model/padrao';
+import { semBOM } from '../model/util';
 import { ErroFicheiro, normalizarProjeto } from '../estado/migracao';
 import { FILTRO_HORARIO, abrirFicheiros, guardarFicheiro } from '../estado/persistencia';
 import { marcarGuardadoEmFicheiro, obterProjeto, substituirProjeto, temAlteracoesPorGuardar } from '../estado/store';
@@ -54,7 +55,7 @@ export async function abrirProjeto() {
   const ficheiros = await abrirFicheiros(['.horario', '.json']);
   if (!ficheiros.length) return;
   try {
-    const projeto = normalizarProjeto(JSON.parse(ficheiros[0].conteudo));
+    const projeto = normalizarProjeto(JSON.parse(semBOM(ficheiros[0].conteudo)));
     substituirProjeto(projeto);
     notificar(`Aberto: ${ficheiros[0].nome}`);
     irPara('inicio');
@@ -80,7 +81,7 @@ export async function abrirConteudoExterno(nome: string, conteudo: string) {
   }
   if (!(await podeDescartar())) return;
   try {
-    substituirProjeto(normalizarProjeto(JSON.parse(conteudo)));
+    substituirProjeto(normalizarProjeto(JSON.parse(semBOM(conteudo))));
     notificar(`Aberto: ${nome}`);
     irPara('inicio');
   } catch (e) {

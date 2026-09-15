@@ -98,6 +98,11 @@ export const PALETA = [
   '#c0582d', '#6b8e23', '#7b4fa0', '#1f8aa8',
 ];
 
+/** Retira a marca BOM que o Bloco de Notas do Windows pode pôr no início de um ficheiro de texto. */
+export function semBOM(texto: string): string {
+  return texto.charCodeAt(0) === 0xfeff ? texto.slice(1) : texto;
+}
+
 export function plural(n: number, singular: string, pluralTxt: string) {
   return `${n} ${n === 1 ? singular : pluralTxt}`;
 }

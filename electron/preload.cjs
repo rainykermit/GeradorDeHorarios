@@ -18,5 +18,7 @@ contextBridge.exposeInMainWorld('gdhDesktop', {
   },
   aoAbrirFicheiro: (cb) => {
     ipcRenderer.on('abrir-conteudo', (_e, ficheiro) => cb(ficheiro));
+    // Ficheiros abertos com duplo clique antes de a página estar pronta.
+    ipcRenderer.invoke('ficheiros-pendentes').then((lista) => lista.forEach((f) => cb(f)));
   },
 });
