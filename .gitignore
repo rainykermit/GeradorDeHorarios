@@ -3,6 +3,7 @@ dist/
 release/
 release-teste*/
 release-verificacao*
+NOTAS-DE-DESENVOLVIMENTO.md
 release-build.log
 site/
 tmp-e2e/
